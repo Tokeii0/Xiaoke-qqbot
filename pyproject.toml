@@ -1,0 +1,40 @@
+[project]
+name = "Xiaoke-qqbot"
+version = "0.1.0"
+description = "QQ group companion with semantic decisions, memory, and a web admin panel"
+readme = "README.md"
+requires-python = ">=3.10, <4.0"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = [
+    "httpx>=0.27,<1.0",
+    "nonebot-adapter-onebot>=2.4,<3.0",
+    "nonebot2[fastapi]>=2.4,<3.0",
+    "python-dotenv>=1.0,<2.0",
+    "tzdata>=2024.1",
+    "typesafe-sdk>=0.7,<1.0",
+    "websockets>=14,<17",
+]
+
+[project.urls]
+Repository = "https://github.com/Tokeii0/Xiaoke-qqbot"
+Issues = "https://github.com/Tokeii0/Xiaoke-qqbot/issues"
+
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["xiaoke_bot"]
+include-package-data = false
+
+[tool.setuptools.package-data]
+xiaoke_bot = ["web/*.html", "web/*.js", "web/*.css"]
+
+[tool.nonebot]
+adapters = [
+    { name = "OneBot V11", module_name = "nonebot.adapters.onebot.v11" }
+]
+plugins = []
+plugin_dirs = ["xiaoke_bot"]
+builtin_plugins = ["echo", "single_session"]

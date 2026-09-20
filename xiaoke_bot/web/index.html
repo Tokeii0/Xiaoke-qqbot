@@ -1,0 +1,655 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data:; media-src 'self' blob:; base-uri 'none'; form-action 'self'" />
+    <title>小可 · QQ Bot 控制台</title>
+    <link rel="stylesheet" href="/admin/styles.css" />
+  </head>
+  <body>
+
+    <section id="loginView" class="login-shell">
+      <div class="login-card">
+        <div class="brand-mark">小</div><p class="eyebrow">LOCAL CONTROL PLANE</p>
+        <h1>小可控制台</h1><p class="muted">管理 QQ 群范围、内容安全和对话行为。控制台仅供本机访问。</p>
+        <form id="loginForm">
+          <label for="adminToken">管理令牌</label>
+          <div class="password-row"><input id="adminToken" name="token" type="password" autocomplete="current-password" placeholder="输入 WEB_ADMIN_TOKEN" required /><button id="toggleToken" class="text-button" type="button">显示</button></div>
+          <button class="primary full" type="submit">进入控制台</button><p id="loginError" class="form-error" role="alert"></p>
+        </form>
+      </div>
+    </section>
+
+    <div id="appView" class="app-shell hidden">
+      <header class="topbar">
+        <div class="brand-row"><div class="brand-mark small">小</div><h1>小可控制台</h1><span class="workspace-label">BOT / ADMIN</span></div>
+        <div class="top-actions"><span id="saveState" class="save-state">配置已同步</span><button id="themeToggle" class="secondary" type="button" aria-label="切换到深色主题">深色主题</button><button id="refreshButton" class="secondary" type="button">刷新</button><button id="logoutButton" class="ghost" type="button">退出</button></div>
+      </header>
+
+      <main class="workspace">
+        <aside class="sidebar" aria-label="配置分类">
+          <p class="nav-group">工作台</p>
+          <button class="nav-item active" type="button" data-target="overview"><b>概览</b><span>运行状态</span></button>
+          <button class="nav-item" type="button" data-target="requests"><b>请求日志</b><span>JEV · 模型调用详情</span></button>
+          <p class="nav-group">对话与角色</p>
+          <button class="nav-item" type="button" data-target="access"><b>权限</b><span>身份与群聊</span></button>
+          <button class="nav-item" type="button" data-target="conversation"><b>对话</b><span>触发与真人感</span></button>
+          <button class="nav-item" type="button" data-target="prompts"><b>提示词</b><span>角色与场景</span></button>
+          <button class="nav-item" type="button" data-target="members"><b>群员画像</b><span>性格与好感度</span></button>
+          <button class="nav-item" type="button" data-target="humanize"><b>拟人情绪</b><span>心情与主动</span></button>
+          <button class="nav-item" type="button" data-target="routine"><b>校园日常</b><span>作息与每日安排</span></button>
+          <button class="nav-item" type="button" data-target="moderation"><b>监管</b><span>关键词撤回</span></button>
+          <p class="nav-group">智能与模型</p>
+          <button class="nav-item" type="button" data-target="jev"><b>JEV 判定</b><span>阈值与回复决策</span></button>
+          <button class="nav-item" type="button" data-target="model"><b>模型</b><span>接口与参数</span></button>
+          <button class="nav-item" type="button" data-target="search"><b>联网搜索</b><span>公开资料与来源</span></button>
+          <button class="nav-item" type="button" data-target="intelligence"><b>Jev 行为</b><span>理解 · 记忆 · 提醒</span></button>
+          <button class="nav-item" type="button" data-target="voice"><b>语音</b><span>GPT-Live · 音色</span></button>
+          <p class="nav-group">管理与集成</p>
+          <button class="nav-item" type="button" data-target="webhook"><b>Webhook</b><span>外部推送转发</span></button>
+          <button class="nav-item" type="button" data-target="joingate"><b>入群审核</b><span>按授权名单放行</span></button>
+          <button class="nav-item" type="button" data-target="summary"><b>聊天总结</b><span>每日图片总结</span></button>
+        </aside>
+
+        <div class="content-area">
+          <section class="page-section" data-page="requests">
+            <div class="page-intro"><p class="eyebrow">OBSERVABILITY</p><h2>请求日志</h2><p>所有功能的 JEV 判定与模型调用。筛选请求，查看输入、输出、评分、耗时和用量。</p></div>
+            <div class="request-stats"><div><span>筛选内请求</span><strong id="requestTotal">—</strong></div><div><span>成功</span><strong id="requestSuccess">—</strong></div><div><span>失败 / 中断</span><strong id="requestFailed">—</strong></div><div><span>平均耗时</span><strong id="requestLatency">—</strong></div></div>
+            <div class="request-filters">
+              <div><label for="requestKind">请求类型</label><select id="requestKind"><option value="">全部类型</option><option value="jev">JEV 判定</option><option value="chat">对话模型</option><option value="vision">图片理解</option><option value="voice">语音合成</option><option value="image">图片生成</option><option value="search">联网搜索</option></select></div>
+              <div><label for="requestFeature">功能来源</label><select id="requestFeature"><option value="">全部功能</option></select></div>
+              <div><label for="requestStatus">请求状态</label><select id="requestStatus"><option value="">全部状态</option><option value="success">成功</option><option value="error">失败</option><option value="running">进行中</option><option value="cancelled">已取消</option><option value="interrupted">已中断</option></select></div>
+              <div><label for="requestGroup">群号</label><input id="requestGroup" inputmode="numeric" placeholder="全部群" /></div>
+              <div class="request-search"><label for="requestSearch">搜索</label><input id="requestSearch" placeholder="模型、输入内容或错误" maxlength="100" /></div>
+              <button id="refreshRequests" class="secondary" type="button">刷新</button>
+            </div>
+            <div class="request-table-wrap"><table class="request-table"><thead><tr><th>时间</th><th>功能 / 类型</th><th>模型</th><th>群 / 成员</th><th>状态</th><th>耗时</th><th>用量</th><th>详情</th></tr></thead><tbody id="requestRows"></tbody></table><p id="requestEmpty" class="empty-state">正在读取请求记录…</p></div>
+            <div class="request-pagination"><span id="requestPageInfo" class="muted"></span><button id="requestPrev" class="secondary" type="button">上一页</button><button id="requestNext" class="secondary" type="button">下一页</button></div>
+            <p id="requestError" class="form-error" role="alert"></p><p class="muted log-note">从本次更新起记录请求详情。媒体二进制与密钥会省略，历史回复决策仍可在「JEV 判定」查看。列表每 15 秒自动刷新。</p>
+          </section>
+          <form id="configForm">
+            <section class="page-section active" data-page="overview">
+              <div class="page-intro"><p class="eyebrow">RUNTIME OVERVIEW</p><h2>运行概览</h2><p>查看机器人、NapCat 和长期记忆的实时连接状态。</p></div>
+              <div class="status-grid overview-status">
+                <article class="status-card"><span id="napcatDot" class="status-dot"></span><p>NapCat / OneBot</p><strong id="napcatStatus">检查中</strong></article>
+                <article class="status-card"><span id="memoryDot" class="status-dot"></span><p>Agent Memory</p><strong id="memoryStatus">检查中</strong></article>
+                <article class="status-card"><span id="modelDot" class="status-dot"></span><p>对话模型</p><strong id="modelStatus">检查中</strong></article>
+              </div>
+              <section class="panel overview-copy"><div class="overview-mark">AI</div><div><h3>配置保存后立即生效</h3><p>群白名单、监管规则、概率回复和真人化参数都会在下一条消息时读取最新配置。密钥不会通过普通配置接口回显。</p></div></section>
+            </section>
+
+            <section class="page-section" data-page="access">
+              <div class="page-intro"><p class="eyebrow">ACCESS CONTROL</p><h2>身份与权限</h2><p>决定谁能管理机器人，以及机器人在哪些群中工作。</p></div>
+              <section class="panel two-column">
+                <div class="field-block"><label for="botName">机器人名称</label><input id="botName" maxlength="20" required /><small>同时作为名称唤醒词和命令前缀。</small></div>
+                <div class="field-block"><label for="superusers">超级管理员 QQ</label><textarea id="superusers" rows="4" inputmode="numeric" placeholder="每行一个 QQ 号" required></textarea><small>至少保留一位超管。</small></div>
+                <div class="field-block span-two"><div class="label-row"><label for="allowedGroups">允许使用的群聊</label><span id="groupCount" class="count-pill">0 个群</span></div><textarea id="allowedGroups" rows="7" inputmode="numeric" placeholder="每行一个群号；留空表示不开放任何群"></textarea><small>非白名单群会被静默忽略；多个群当前共享同一记忆域。</small></div>
+              </section>
+            </section>
+
+            <section class="page-section" data-page="conversation">
+              <div class="page-intro"><p class="eyebrow">CONVERSATION</p><h2>触发与真人感</h2><p>设置机器人什么时候参与群聊，以及回答呈现出来的方式。</p></div>
+              <section class="panel">
+                <div class="toggle-list">
+                  <label class="toggle-row"><span><strong>无需 @ 也响应</strong><small>白名单群中每条普通消息都会触发，优先级高于概率回复。</small></span><input id="respondWithoutAt" type="checkbox" /><i></i></label>
+                  <label class="toggle-row"><span><strong>允许超管私聊</strong><small>普通用户私聊始终忽略。</small></span><input id="privateChat" type="checkbox" /><i></i></label>
+                  <label class="toggle-row"><span><strong>概率参与群聊</strong><small>只对没有 @、没有名称唤醒的消息随机回复。</small></span><input id="probabilityReply" type="checkbox" /><i></i></label>
+                  <label class="toggle-row"><span><strong>使用引用回复（reply）</strong><small>关闭后所有回答都作为普通消息发送；开启后按下方概率决定。</small></span><input id="quoteReply" type="checkbox" /><i></i></label>
+                  <label class="toggle-row"><span><strong>随机回复延迟</strong><small>发送前随机等待一段时间，更接近真人节奏。</small></span><input id="humanizeDelay" type="checkbox" /><i></i></label>
+                </div>
+                <div class="two-column compact-fields">
+                  <div class="field-block range-field"><div class="label-row"><label for="replyProbability">概率回复几率</label><output id="replyProbabilityValue">10%</output></div><input id="replyProbability" type="range" min="0" max="1" step="0.01" /><div class="range-labels"><span>偶尔</span><span>适中</span><span>频繁</span></div></div>
+                  <div class="field-block range-field"><div class="label-row"><label for="quoteReplyProbability">引用回复概率</label><output id="quoteReplyProbabilityValue">100%</output></div><input id="quoteReplyProbability" type="range" min="0" max="1" step="0.01" /><div class="range-labels"><span>不引用</span><span>偶尔引用</span><span>总是引用</span></div></div>
+                  <div class="field-block span-two"><div class="label-row"><label for="triggerKeywords">聊天触发关键词</label><span id="triggerKeywordCount" class="count-pill">0 个词</span></div><textarea id="triggerKeywords" rows="4" placeholder="每行一个，例如：&#10;小可&#10;小可同学"></textarea><small>群消息任意位置包含其中一个词就会触发；忽略大小写、全角/半角以及关键词中插入的空格。留空则仅保留 @、名称开头和概率参与等触发方式。</small></div>
+                  <div class="field-block delay-grid"><div><label for="delayMin">最短延迟（秒）</label><input id="delayMin" type="number" min="0" max="30" step="0.1" /></div><div><label for="delayMax">最长延迟（秒）</label><input id="delayMax" type="number" min="0" max="30" step="0.1" /></div></div>
+                  <div class="field-block"><label for="historyMessages">短期上下文消息数</label><input id="historyMessages" type="number" min="0" max="40" /></div>
+                  <div class="field-block"><label for="maxReplyChars">单条回复字符数</label><input id="maxReplyChars" type="number" min="50" max="4000" /><small>用于超长回答的安全切分，下限 50。</small></div>
+                </div>
+              </section>
+              <section class="panel humanize-panel">
+                <div class="subheading"><h3>输出后处理</h3><p>代码块和网址会被保护，不参与标点和换行处理。</p></div>
+                <div class="toggle-list">
+                  <label class="toggle-row"><span><strong>移除句子标点</strong><small>去除中英文逗号、句号、问号等。</small></span><input id="removePunctuation" type="checkbox" /><i></i></label>
+                  <label class="toggle-row"><span><strong>换行转换为空格</strong><small>将普通回答压成更自然的单段消息。</small></span><input id="newlineToSpace" type="checkbox" /><i></i></label>
+                  <label class="toggle-row"><span><strong>按空格概率分段发送</strong><small>在空格边界随机拆成多条 QQ 消息；仅第一段可能引用原消息。</small></span><input id="segmentSend" type="checkbox" /><i></i></label>
+                </div>
+                <div class="two-column compact-fields">
+                  <div class="field-block range-field"><div class="label-row"><label for="segmentProbability">每个空格的分段概率</label><output id="segmentProbabilityValue">35%</output></div><input id="segmentProbability" type="range" min="0" max="1" step="0.01" /><div class="range-labels"><span>少分段</span><span>适中</span><span>多分段</span></div></div>
+                  <div class="field-block"><label for="segmentMaxParts">单次最多分成几条</label><input id="segmentMaxParts" type="number" min="2" max="6" /></div>
+                  <div class="field-block delay-grid"><div><label for="segmentDelayMin">基础停顿最短（秒）</label><input id="segmentDelayMin" type="number" min="0" max="10" step="0.05" /></div><div><label for="segmentDelayMax">基础停顿最长（秒）</label><input id="segmentDelayMax" type="number" min="0" max="10" step="0.05" /></div></div>
+                </div>
+                <p class="muted">基础停顿上叠加下一段字数的平滑曲线，短句快、长句慢，最长 10 秒。两项均设为 0 可关闭停顿。超长消息切块也使用相同节奏。</p><p id="segmentDelayPreview" class="cadence-preview"></p>
+              </section>
+              <section class="panel">
+                <div class="subheading"><h3>偶尔打快了</h3><p>候选文字通过频率限制后，由 JEV 检查是否是轻松闲聊，再模拟一处小手误。</p></div>
+                <label class="toggle-row"><span><strong>允许闲聊手误</strong><small>仅限短篇闲聊文字。认真求助、安慰、工具结果、联网资料、代码、链接、引文和数字保持准确；需要启用 JEV。</small></span><input id="typoEnabled" type="checkbox" /><i></i></label>
+                <div class="two-column compact-fields">
+                  <div class="field-block"><label for="typoProbability">候选文字触发概率</label><input id="typoProbability" type="number" min="0" max="0.15" step="0.01" value="0.04" /><small>默认 0.04，即 4%；通过全部条件后才可能发生，实际频率更低。上限 15%。</small></div>
+                  <div class="field-block"><label for="typoCooldown">同一会话最短间隔（分钟）</label><input id="typoCooldown" type="number" min="5" max="1440" value="30" /><small>默认 30 分钟；前后至少正常发送 5 条文字，避免连续打错。</small></div>
+                </div>
+                <p class="muted log-note">只从少量常见词里改一处，不随机破坏整句话；少数时候会稍后补一句更正。语音朗读和长期记忆保留正确原文，聊天上下文保留实际发出的文字。JEV 不可用时保持原文。</p>
+              </section>
+            </section>
+
+            <section class="page-section" data-page="prompts">
+              <div class="page-intro"><p class="eyebrow">PROMPT STUDIO</p><h2>角色与场景提示词</h2><p>将基础人格拆分管理，并在特定话题出现时临时注入不同的场景提示。</p></div>
+              <section class="panel runtime-context-panel">
+                <div class="subheading"><h3>动态会话信息</h3><p>系统会在每次请求模型时实时生成，不会写入长期记忆，也不需要手动放进 Prompt。</p></div>
+                <div class="runtime-context-layout">
+                  <div class="field-block"><label for="contextTimezone">时间时区</label><input id="contextTimezone" maxlength="64" placeholder="Asia/Taipei" required /><small>使用 IANA 时区名称，例如 Asia/Taipei、Asia/Shanghai。</small></div>
+                  <div class="context-field-list" aria-label="自动注入字段">
+                    <span>机器人名称</span><span>当前日期</span><span>当前时间</span><span>星期</span><span>时区</span><span>会话类型</span><span>当前群号</span><span>目标 QQ</span><span>目标昵称</span>
+                  </div>
+                </div>
+              </section>
+              <section class="panel two-column prompt-fields">
+                <div class="field-block span-two"><label for="promptIdentity">Bot 基本介绍</label><textarea id="promptIdentity" rows="4" maxlength="4000" required></textarea><small>它是谁、叫什么、在群聊中扮演什么角色。</small></div>
+                <div class="field-block"><label for="promptPersonality">性格设定</label><textarea id="promptPersonality" rows="5" maxlength="4000"></textarea><small>情绪倾向、态度和稳定的人格特征。</small></div>
+                <div class="field-block"><label for="promptSpeakingStyle">说话风格</label><textarea id="promptSpeakingStyle" rows="5" maxlength="4000"></textarea><small>措辞、口吻、正式程度和常用表达。</small></div>
+                <div class="field-block"><label for="promptGroupBehavior">群聊互动方式</label><textarea id="promptGroupBehavior" rows="5" maxlength="4000"></textarea><small>如何区分成员、跟随话题和处理多人聊天。</small></div>
+                <div class="field-block"><label for="promptResponsePreferences">回答偏好</label><textarea id="promptResponsePreferences" rows="5" maxlength="4000"></textarea><small>答案长度、组织方式、是否主动追问等。</small></div>
+                <div class="field-block span-two"><label for="promptInterests">感兴趣的话题</label><textarea id="promptInterests" rows="4" maxlength="4000" placeholder="每行一个话题，例如：&#10;服务器部署、报错排查、运维&#10;新出的 AI 模型和工具&#10;猫"></textarea><small>它真正关心、愿意主动参与的话题。这里既写进人设提示词，也会交给 Jev 判断——群里聊到这些内容时，即使没人叫它，它也会参与讨论（受「Jev 判定」页的兴趣阈值和打扰度限制）。留空则不做兴趣判断。</small></div>
+                <div class="field-block span-two"><label for="promptBoundaries">安全与边界</label><textarea id="promptBoundaries" rows="4" maxlength="4000"></textarea><small>明确不能做的事情、隐私和权限边界。</small></div>
+                <div class="field-block span-two"><div class="label-row"><label for="systemPrompt">附加全局指令</label><span id="promptCount" class="count-pill">0 字</span></div><textarea id="systemPrompt" rows="6" maxlength="12000" required></textarea><small>用于放置以上分类没有覆盖的通用规则。</small></div>
+              </section>
+
+              <section class="panel keyword-prompt-panel">
+                <div class="subheading prompt-rule-heading"><div><h3>关键词场景提示</h3><p>目标消息命中任意关键词时，按概率只在当前轮注入。单轮最多生效三条。</p></div><div><span id="promptRuleCount" class="count-pill">0 条规则</span><button id="addPromptRule" class="secondary" type="button">新增规则</button></div></div>
+                <div id="promptRuleList" class="prompt-rule-list"></div>
+                <div id="promptRuleEmpty" class="empty-state">还没有场景规则。可以从“天气聊天”“安慰模式”或“技术问答”开始。</div>
+              </section>
+
+              <template id="promptRuleTemplate">
+                <article class="prompt-rule-card">
+                  <div class="prompt-rule-top"><label class="inline-check"><input class="rule-enabled" type="checkbox" checked />启用规则</label><button class="rule-delete ghost" type="button">删除</button></div>
+                  <div class="two-column">
+                    <div class="field-block"><label>规则名称</label><input class="rule-name" maxlength="50" placeholder="例如：天气闲聊" /></div>
+                    <div class="field-block range-field"><div class="label-row"><label>触发概率</label><output class="rule-probability-value">100%</output></div><input class="rule-probability" type="range" min="0" max="1" step="0.01" value="1" /></div>
+                    <div class="field-block span-two"><label>触发关键词</label><textarea class="rule-keywords" rows="3" placeholder="每行一个，例如：天气&#10;下雨&#10;降温"></textarea></div>
+                    <div class="field-block span-two"><label>本轮专属 Prompt</label><textarea class="rule-prompt" rows="6" maxlength="4000" placeholder="例如：聊到天气时像熟悉的朋友一样回应，可以自然关心对方的出行和体感。"></textarea></div>
+                  </div>
+                </article>
+              </template>
+            </section>
+
+            <section class="page-section" data-page="moderation">
+              <div class="page-intro"><p class="eyebrow">MESSAGE MODERATION</p><h2>消息监管</h2><p>命中关键词的群消息会被立即撤回，并且不会进入 AI 对话或长期记忆。</p></div>
+              <section class="panel">
+                <div class="toggle-list">
+                  <label class="toggle-row"><span><strong>启用关键词监管</strong><small>只监管当前群白名单中的消息。</small></span><input id="moderationEnabled" type="checkbox" /><i></i></label>
+                  <label class="toggle-row"><span><strong>群管理与超管豁免</strong><small>开启后不撤回群主、管理员和超级管理员的消息。</small></span><input id="moderationExemptAdmins" type="checkbox" /><i></i></label>
+                </div>
+                <div class="field-block moderation-keywords"><div class="label-row"><label for="moderationKeywords">撤回关键词</label><span id="keywordCount" class="count-pill">0 个词</span></div><textarea id="moderationKeywords" rows="14" placeholder="每行一个关键词"></textarea><small>忽略大小写、全角/半角差异和插入的空格。机器人 QQ 必须具有群管理员权限才能撤回他人消息。</small></div>
+              </section>
+
+              <section class="panel">
+                <div class="subheading"><h3>防冒犯</h3><p>由 AI 按下方标准判断对方是否冒犯机器人；被判定冒犯即给该成员加标记，达到阈值后自动处置。绝不处置群主、管理员和超管；机器人需具备群管理员权限。</p></div>
+                <div class="toggle-list">
+                  <label class="toggle-row"><span><strong>启用防冒犯</strong><small>触发回复时让模型判断最后一条消息是否构成冒犯，据此加标记并处置。</small></span><input id="offenseGuardEnabled" type="checkbox" /><i></i></label>
+                  <label class="toggle-row"><span><strong>对群管理员也处置</strong><small>默认只处置普通成员；开启后也可禁言/踢出群管理员——但仅当机器人自己是群主时才会成功（QQ 规则：管理员之间不能互相禁言）。群主和超管始终豁免。</small></span><input id="offenseIncludeAdmins" type="checkbox" /><i></i></label>
+                </div>
+                <div class="three-column compact-fields">
+                  <div class="field-block"><label for="offenseAction">处置方式</label><select id="offenseAction"><option value="mute">禁言</option><option value="kick">踢出</option><option value="none">仅标记不处置</option></select></div>
+                  <div class="field-block"><label for="offenseThreshold">触发次数阈值</label><input id="offenseThreshold" type="number" min="1" max="50" /></div>
+                  <div class="field-block"><label for="offenseMuteDuration">禁言时长（秒）</label><input id="offenseMuteDuration" type="number" min="60" max="2592000" /></div>
+                </div>
+                <div class="field-block"><label for="offensePrompt">冒犯判定标准</label><textarea id="offensePrompt" rows="4" maxlength="2000" placeholder="描述什么算冒犯，例如：对方对你进行人身攻击、辱骂、恶意骚扰"></textarea></div>
+              </section>
+            </section>
+
+            <section class="page-section" data-page="jev">
+              <div class="page-intro"><p class="eyebrow">TYPESAFE JEV</p><h2>Jev 判定</h2><p>用一次结构化判断替掉「抛硬币决定是否回复」和「<code>[[OFFENSE]]</code> 隐藏标记」。四个问题共享同一份上下文，在同一个请求里并行回答。</p></div>
+
+              <section class="panel">
+                <div class="subheading"><h3>总开关</h3><p>关闭时完全回到原来的关键词/概率闸门与隐藏标记，不调用 TypeSafe。需要在 <code>.env</code> 里配好 <code>TYPESAFE_API_KEY</code>。</p></div>
+                <div class="toggle-list">
+                  <label class="toggle-row"><span><strong>启用 Jev 判定</strong><small>总开关。关闭后下面所有设置都不生效。</small></span><input id="jevEnabled" type="checkbox" /><i></i></label>
+                  <label class="toggle-row"><span><strong>回复闸门</strong><small>没有 @ 也判断是不是在跟机器人说话、插话有没有价值，替代 2% 随机回复。</small></span><input id="jevGateEnabled" type="checkbox" /><i></i></label>
+                  <label class="toggle-row"><span><strong>冒犯判定</strong><small>改由 Jev 判断，聊天模型不再需要输出隐藏标记，也不会漏标记到群里。</small></span><input id="jevOffenseEnabled" type="checkbox" /><i></i></label>
+                  <label class="toggle-row"><span><strong>主动开口占用主动额度</strong><small>没人点名而机器人想说话时，受「拟人情绪」页的静默时段 / 冷却 / 每小时每天上限约束。关掉则不设上限，不推荐。</small></span><input id="jevUseProactiveBudget" type="checkbox" /><i></i></label>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="subheading"><h3>阈值</h3><p>两条独立的开口路径：<strong>被点名</strong>（不看打扰度——被叫还不出声才失礼），或<strong>有价值且不打断别人</strong>。改阈值不会重跑推理，保存后对新消息立即生效。</p></div>
+                <div class="three-column compact-fields">
+                  <div class="field-block"><label for="jevAddressedThreshold">被点名阈值 (0–1)</label><input id="jevAddressedThreshold" type="number" min="0" max="1" step="0.01" /><small>≥ 此值即回复。调低更爱搭话。</small></div>
+                  <div class="field-block"><label for="jevWorthThreshold">插话价值阈值 (0–1)</label><input id="jevWorthThreshold" type="number" min="0" max="1" step="0.01" /><small>没人点名时要多有用才开口。</small></div>
+                  <div class="field-block"><label for="jevOffenseThreshold">冒犯阈值 (0–1)</label><input id="jevOffenseThreshold" type="number" min="0" max="1" step="0.01" /><small>调高更宽容，吐槽和玩笑不会被误判。</small></div>
+                  <div class="field-block"><label for="jevInterestThreshold">兴趣阈值 (0–1)</label><input id="jevInterestThreshold" type="number" min="0" max="1" step="0.01" /><small>聊到「<a href="#prompts">提示词 → 感兴趣的话题</a>」里的内容时，达到此值就参与讨论。没填兴趣话题则该判断不生效。</small></div>
+                </div>
+                <div class="field-block"><label for="jevMaxIntrusion">打扰度上限 (0–2)</label><input id="jevMaxIntrusion" type="number" min="0" max="2" step="0.05" /><small>越大越敢插话。这是 3 档打扰度的加权位置，不是档位序号：0 = 没人在聊，1 = 气氛轻松，2 = 别人正在认真讨论。只作用于主动开口，被点名时不受限制。</small></div>
+              </section>
+
+              <section class="panel">
+                <div class="subheading"><h3>判定说明（问 Jev 的问题）</h3><p>这几段文字就是发给 Jev 的判断题本身，直接决定机器人什么时候开口。默认写法偏「是不是在叫机器人」，但<strong>触发条件不必和机器人有关</strong>——你可以改成按话题、按场景触发，例如「有人在聊部署、报错或服务器相关的话题」。留空则用默认写法。</p></div>
+                <div class="field-block"><label for="jevWorthPrompt">插话价值判定（最常改的一项）</label><textarea id="jevWorthPrompt" rows="4" maxlength="2000" placeholder="什么情况下机器人开口是有价值的？例如：有人提出了没人回答的问题，或在讨论 xx 话题。"></textarea><small>搭配上面的「插话价值阈值」使用。改成话题触发后，机器人就会在相关话题出现时主动参与，而不只是被叫到才说话。</small></div>
+                <div class="field-block"><label for="jevAddressedPrompt">点名判定</label><textarea id="jevAddressedPrompt" rows="3" maxlength="2000" placeholder="怎样算在对机器人说话？"></textarea><small>可用 <code>{bot_name}</code> 占位符引用机器人名称。这条命中时会直接回复，且不受打扰度限制。</small></div>
+                <div class="field-block"><label for="jevInterestPrompt">兴趣判定</label><textarea id="jevInterestPrompt" rows="3" maxlength="2000" placeholder="怎样算聊到了它感兴趣的话题？"></textarea><small>用 <code>{interests}</code> 占位符插入「提示词 → 感兴趣的话题」里填的内容；不写占位符则自动附在末尾。</small></div>
+                <div class="field-block"><div class="label-row"><label for="jevIntrusionLevels">打扰度档位</label><span class="count-pill">必须正好 3 行</span></div><textarea id="jevIntrusionLevels" rows="3" placeholder="每行一档，从「完全不打扰」到「最打扰」"></textarea><small>每行描述一种具体场景，从不打扰排到最打扰。上面的「打扰度上限 (0–2)」就是按这 3 档的加权位置计算的，所以行数必须是 3。</small></div>
+              </section>
+
+              <section class="panel">
+                <div class="subheading"><h3>调用与日志</h3><p>短消息跳过 Jev 以省调用，此时回落到原闸门与隐藏标记。</p></div>
+                <div class="three-column compact-fields">
+                  <div class="field-block"><label for="jevModel">模型</label><input id="jevModel" type="text" placeholder="jev-latest" /></div>
+                  <div class="field-block"><label for="jevTimeout">超时（秒）</label><input id="jevTimeout" type="number" min="1" max="30" step="0.5" /><small>超时即回退，不会让机器人变哑。</small></div>
+                  <div class="field-block"><label for="jevMinTextLength">最短文本长度</label><input id="jevMinTextLength" type="number" min="1" max="200" /><small>短于此长度不调用 Jev。</small></div>
+                  <div class="field-block"><label for="jevContextMessages">上下文条数</label><input id="jevContextMessages" type="number" min="0" max="40" /><small>随判定一起发送的最近消息数。</small></div>
+                  <div class="field-block"><label for="jevLogRetention">日志保留条数</label><input id="jevLogRetention" type="number" min="0" max="5000" /><small>分别限制统一请求日志与旧回复决策日志。超出后删除最旧记录，0 = 不限制。</small></div>
+                </div>
+                <div class="toggle-list">
+                  <label class="toggle-row"><span><strong>记录全部 JEV 请求</strong><small>回复、语音、记忆、知识库、偏好与生活配图统一进入「请求日志」，可查看输入、评分、耗时及失败详情。下方保留回复决策记录。</small></span><input id="jevLogEnabled" type="checkbox" /><i></i></label>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="subheading"><h3>判定日志</h3><p>每条记录都是一次真实判定。用它校准阈值：如果「沉默」里有该回的，调低对应阈值；如果乱插话，调高。</p></div>
+                <div class="status-grid jev-stat-grid">
+                  <article class="status-card"><p>判定次数</p><strong id="jevStatJudged">—</strong></article>
+                  <article class="status-card"><p>回复</p><strong id="jevStatReplied">—</strong></article>
+                  <article class="status-card"><p>沉默</p><strong id="jevStatSilent">—</strong></article>
+                  <article class="status-card"><p>判定冒犯</p><strong id="jevStatOffended">—</strong></article>
+                  <article class="status-card"><p>额度拦截</p><strong id="jevStatBudget">—</strong></article>
+                  <article class="status-card"><p>已存日志</p><strong id="jevStatStored">—</strong></article>
+                </div>
+                <div class="member-toolbar jev-log-toolbar">
+                  <div class="field-block"><label for="jevLogGroupFilter">群聊筛选</label><select id="jevLogGroupFilter"><option value="">全部白名单群</option></select></div>
+                  <div class="field-block"><label for="jevLogOutcome">结果</label><select id="jevLogOutcome"><option value="all">全部</option><option value="replied">只看回复</option><option value="silent">只看沉默</option><option value="offended">只看判定冒犯</option></select></div>
+                  <div class="field-block"><label for="jevLogHours">统计窗口（小时）</label><input id="jevLogHours" type="number" min="1" max="720" value="24" /></div>
+                  <div class="field-block"><label for="jevLogLimit">显示条数</label><input id="jevLogLimit" type="number" min="1" max="500" value="100" /></div>
+                  <button id="refreshJevLogs" class="secondary" type="button">刷新日志</button>
+                  <button id="clearJevLogs" class="ghost" type="button">清空日志</button>
+                </div>
+                <div class="jev-log-wrap">
+                  <table class="jev-log-table">
+                    <thead><tr><th>时间</th><th>群 / 成员</th><th>消息</th><th title="是在跟机器人说话吗">点名</th><th title="插话有价值吗">价值</th><th title="是否聊到了它感兴趣的话题">兴趣</th><th title="打扰程度 0-2">打扰</th><th title="是否冒犯机器人">冒犯</th><th>结果</th><th>原因</th></tr></thead>
+                    <tbody id="jevLogBody"></tbody>
+                  </table>
+                </div>
+                <div id="jevLogEmpty" class="empty-state">还没有判定记录。开启 Jev 判定后，白名单群里的消息会在这里留下判定痕迹。</div>
+              </section>
+            </section>
+
+            <section class="page-section" data-page="intelligence">
+              <div class="page-intro"><p class="eyebrow">JEV BEHAVIOR</p><h2>理解情境，也记得后续</h2><p>Jev 判断情绪、接话和功能意图；程序负责校验、保存与执行。需先启用「Jev 判定」总开关。</p></div>
+              <section class="panel toggle-list">
+                <label class="toggle-row"><span><strong>语义情绪与场景反应</strong><small>按情境讲解、安慰、接梗或庆祝，并判断回复详略：轻松互动一句收口，具体问题按需展开。</small></span><input id="jevSceneEnabled" type="checkbox" /><i></i></label>
+                <label class="toggle-row"><span><strong>连续接话与适时收口</strong><small>接住“那怎么弄”等追问；别人已回答、成员彼此聊天或话题结束时减少插话。</small></span><input id="jevContinuityEnabled" type="checkbox" /><i></i></label>
+                <label class="toggle-row"><span><strong>记忆筛选与纠错</strong><small>保存用户明确的长期事实，排除临时状态和玩笑；更新旧印象，筛选与本轮相关的记忆。</small></span><input id="jevMemoryEnabled" type="checkbox" /><i></i></label>
+                <label class="toggle-row"><span><strong>自然的后续追问</strong><small>同一群友再次聊到未完成事项时，适时追问一次。遵守「拟人情绪」页的主动消息总开关、安静时段和额度。</small></span><input id="jevFollowupEnabled" type="checkbox" /><i></i></label>
+                <label class="toggle-row"><span><strong>自然语言调用功能</strong><small>支持今日群聊总结、未解决事项、个人记忆、创建/查看/取消提醒。关闭后暂停提醒调度。</small></span><input id="jevToolsEnabled" type="checkbox" /><i></i></label>
+                <label class="toggle-row"><span><strong>群知识库与常见问题</strong><small>整理群友实际确认有效的办法，回答类似问题时附原消息来源；不把未验证建议当结论。</small></span><input id="jevKnowledgeEnabled" type="checkbox" /><i></i></label>
+                <label class="toggle-row"><span><strong>自然语言纠错与回复偏好</strong><small>支持“刚才开玩笑，别记住”“以后代码问题用文字回答”。全群规则仅群主、管理员或超管可改。</small></span><input id="jevFeedbackEnabled" type="checkbox" /><i></i></label>
+                <div class="field-block"><label for="jevKnowledgeMaxAgeDays">知识自动引用期限（天）</label><input id="jevKnowledgeMaxAgeDays" type="number" min="1" max="3650" /><small>超过期限暂不自动引用；新问题的环境或版本不符时也不引用。</small></div>
+                <div class="field-block"><label for="jevFollowupMinHours">事项记录多久后才可追问（小时）</label><input id="jevFollowupMinHours" type="number" min="1" max="720" step="1" /><small>只在话题相关时追问，不定时向安静的群里插话。</small></div>
+                <div class="field-block"><label for="jevBehaviorPrompt">语义行为判断规则</label><textarea id="jevBehaviorPrompt" rows="5" maxlength="2000"></textarea></div>
+                <p class="muted">可以说：“小可，整理一下今天还没解决的问题”“明早九点提醒我更新证书”“查看我的提醒”“取消提醒 12”。提醒采用「提示词」页配置的时区，创建后会返回具体时间；每人在每个会话最多保留 20 条待处理提醒。</p>
+              </section>
+              <section class="panel intelligence-records">
+                <div class="subheading"><h3>记忆、事项与提醒</h3><p>按类别查看记录，点击详情查看完整内容与来源。</p></div>
+                <div id="intelligenceTabs" class="record-tabs" role="tablist" aria-label="记录分类">
+                  <button id="recordsTabFacts" type="button" role="tab" data-kind="facts" aria-selected="true" aria-controls="intelligenceTablePanel">长期事实 <span class="count-pill">—</span></button>
+                  <button id="recordsTabTopics" type="button" role="tab" data-kind="topics" aria-selected="false" aria-controls="intelligenceTablePanel" tabindex="-1">事项 <span class="count-pill">—</span></button>
+                  <button id="recordsTabReminders" type="button" role="tab" data-kind="reminders" aria-selected="false" aria-controls="intelligenceTablePanel" tabindex="-1">提醒 <span class="count-pill">—</span></button>
+                  <button id="recordsTabKnowledge" type="button" role="tab" data-kind="knowledge" aria-selected="false" aria-controls="intelligenceTablePanel" tabindex="-1">群知识库 <span class="count-pill">—</span></button>
+                  <button id="recordsTabPreferences" type="button" role="tab" data-kind="preferences" aria-selected="false" aria-controls="intelligenceTablePanel" tabindex="-1">回复偏好与群规则 <span class="count-pill">—</span></button>
+                </div>
+                <div class="record-filters">
+                  <div class="field-block"><label for="intelligenceGroup">群号</label><input id="intelligenceGroup" type="number" min="1" placeholder="全部群" /></div>
+                  <div class="field-block"><label for="intelligenceStatus">记录状态</label><select id="intelligenceStatus"><option value="">全部状态</option></select></div>
+                  <div class="field-block"><label for="intelligenceSearch">搜索当前分类</label><input id="intelligenceSearch" type="search" placeholder="内容、成员或记录编号" maxlength="100" /></div>
+                  <button id="refreshIntelligence" type="button" class="secondary">刷新记录</button>
+                </div>
+                <p id="intelligenceError" class="form-error" role="alert"></p>
+                <div id="intelligenceTablePanel" role="tabpanel" aria-labelledby="recordsTabFacts" tabindex="0">
+                  <p id="intelligenceHint" class="muted record-hint"></p>
+                  <div class="record-table-wrap" tabindex="0" role="region" aria-label="记录表格，可横向滚动">
+                    <table class="record-table" aria-label="长期事实">
+                      <colgroup><col class="record-id-col" /><col /><col class="record-owner-col" /><col class="record-status-col" /><col class="record-time-col" /><col class="record-actions-col" /></colgroup>
+                      <thead><tr><th scope="col">编号</th><th id="intelligenceContentHeading" scope="col">事实内容</th><th scope="col">群 / 成员</th><th scope="col">状态</th><th id="intelligenceTimeHeading" scope="col">记录时间</th><th scope="col">操作</th></tr></thead>
+                      <tbody id="intelligenceRows"></tbody>
+                    </table>
+                    <p id="intelligenceEmpty" class="empty-state" role="status">正在读取记录…</p>
+                  </div>
+                  <div class="request-pagination"><span id="intelligencePageInfo" class="muted" aria-live="polite"></span><button id="intelligencePrev" class="secondary" type="button" aria-label="记录上一页" disabled>上一页</button><button id="intelligenceNext" class="secondary" type="button" aria-label="记录下一页" disabled>下一页</button></div>
+                  <p class="muted log-note">每类加载所选群最近 100 条记录，搜索与分页在这些记录中进行。切换分类不会修改配置。</p>
+                </div>
+              </section>
+            </section>
+
+            <section class="page-section" data-page="search">
+              <div class="page-intro"><p class="eyebrow">WEB SEARCH</p><h2>联网搜索</h2><p>JEV 判断何时需要查公开资料，搜索结果交给当前对话模型整理，并附真实来源链接。</p></div>
+              <section class="panel">
+                <label class="toggle-row"><span><strong>启用联网搜索</strong><small>询问最新消息、当前版本或明确要求搜索时按需检索；日常闲聊和校园日记不会自动外搜。</small></span><input id="searchEnabled" type="checkbox" /><i></i></label>
+                <p id="searchState" class="muted log-note"></p>
+                <div class="two-column compact-fields">
+                  <div class="field-block"><label for="searchBaseUrl">Tavily 接口地址</label><input id="searchBaseUrl" placeholder="https://api.tavily.com" /><small>使用 Tavily 官方搜索 API，或兼容该协议的自有网关。</small></div>
+                  <div class="field-block"><div class="label-row"><label for="searchApiKey">搜索 API Key</label><span id="searchKeyState" class="count-pill"></span></div><div class="password-row"><input id="searchApiKey" type="password" autocomplete="new-password" placeholder="留空保留已有 Key" /><button id="toggleSearchKey" type="button" class="text-button">显示</button></div><label class="checkbox-label"><input id="clearSearchKey" type="checkbox" /> 清除搜索 Key</label><small>需要独立的 Tavily Key，保存后不回显。</small></div>
+                  <div class="field-block"><label for="searchThreshold">JEV 搜索阈值</label><input id="searchThreshold" type="number" min="0" max="1" step="0.05" value="0.75" /><small>越高越谨慎。JEV 不可用时，仅明确要求联网搜索才尝试检索。</small></div>
+                  <div class="field-block"><label for="searchMaxResults">每次最多来源数</label><input id="searchMaxResults" type="number" min="1" max="8" value="5" /></div>
+                  <div class="field-block"><label for="searchTimeout">搜索超时（秒）</label><input id="searchTimeout" type="number" min="3" max="30" value="15" /></div>
+                </div>
+                <p class="muted log-note">DeepSeek 官方 API 目前支持外部工具调用，不提供内置联网搜索；因此这里单独检索，继续由你已配置的 DeepSeek 或其他模型回答。搜索失败会明确说明，来源和请求详情可在「请求日志」查看。</p>
+              </section>
+              <section class="panel">
+                <div class="subheading"><h3>测试搜索</h3><p>使用当前表单配置查询公开资料，仅在本页显示，会消耗搜索服务额度。</p></div>
+                <div class="two-column"><div class="field-block"><label for="searchPreviewQuery">测试关键词</label><input id="searchPreviewQuery" maxlength="300" placeholder="例如：DeepSeek 官方 API 文档" /></div><div class="field-block"><label>本地预览</label><button id="previewSearch" type="button" class="secondary">搜索并查看来源</button></div></div>
+                <p id="searchPreviewStatus" class="muted" role="status"></p><p id="searchPreviewError" class="form-error" role="alert"></p><div id="searchPreviewResults" class="search-results"></div>
+              </section>
+            </section>
+
+            <section class="page-section" data-page="voice">
+              <div class="page-intro"><p class="eyebrow">GPT-LIVE 1</p><h2>让小可开口说话</h2><p>将小可的回复生成自然的 QQ 语音。选好音色与表达风格，先听听效果。</p></div>
+              <section class="panel two-column">
+                <label class="toggle-row span-two"><span><strong>启用语音回复</strong><small>仍由现有对话模型回答，再交给 GPT-Live 表达；语音失败或文字过长时发送文字。</small></span><input id="voiceEnabled" type="checkbox" /><i></i></label>
+                <label class="toggle-row span-two"><span><strong>同时发送文字</strong><small>开启时附带回复原文；关闭后只发语音，生成失败时仍回退文字。</small></span><input id="voiceSendText" type="checkbox" /><i></i></label>
+                <div class="field-block span-two"><label for="voiceApiBaseUrl">语音 API Base URL</label><input id="voiceApiBaseUrl" type="url" placeholder="https://api.openai.com/v1" /><small>使用支持 GPT-Live 的接口。普通聊天或 TTS 中转接口未必支持 Live。</small></div>
+                <div class="field-block span-two"><div class="label-row"><label for="voiceApiKey">语音 API Key</label><span id="voiceApiKeyState" class="count-pill">未配置</span></div><div class="input-action"><input id="voiceApiKey" type="password" autocomplete="new-password" placeholder="填写有 GPT-Live 权限的 Key；留空保持已保存的值" /><button id="toggleVoiceApiKey" class="secondary" type="button">显示</button></div><label class="inline-check"><input id="clearVoiceApiKey" type="checkbox" />清除已保存的语音 Key</label><small>语音使用独立 Key，保存在本机秘密文件中，页面不会回显。</small></div>
+                <div class="field-block"><label for="voiceModel">Live 模型</label><input id="voiceModel" placeholder="gpt-live-1" maxlength="100" /></div>
+                <div class="field-block"><label for="voiceName">音色</label><select id="voiceName"><option value="marin">Marin（默认）</option></select><small>不同音色的中文发音与情绪表现，请通过试听选择。</small></div>
+              </section>
+              <section class="panel two-column">
+                <div class="field-block span-two"><label>快速选择表达风格</label><div class="voice-presets"><button id="voicePresetSweet" class="secondary" type="button">甜美自然</button><button id="voicePresetSoft" class="secondary" type="button">温柔舒缓</button><button id="voicePresetBright" class="secondary" type="button">轻快元气</button></div><small>预设会调整音色、语速提示与表达风格，之后可以自由修改。</small></div>
+                <div class="field-block span-two"><label for="voiceInstructions">表达风格</label><textarea id="voiceInstructions" rows="4" maxlength="2000" placeholder="例如：声音柔和明亮，带一点笑意，甜而自然，像和朋友聊天。"></textarea><small>描述甜度、情绪、停顿和说话方式。模型可能对原文做口语化调整，试听时可查看实际转写。</small></div>
+                <div class="field-block"><label for="voicePace">语速提示</label><select id="voicePace"><option value="slow">稍慢 · 从容</option><option value="natural">自然 · 日常聊天</option><option value="brisk">稍快 · 轻快</option></select><small>通过风格指令控制，实际语速以试听为准。</small></div>
+                <div class="field-block"><label for="voiceReplyProbability">语音回复比例（0–1）</label><input id="voiceReplyProbability" type="number" min="0" max="1" step="0.05" /><small>1 = 每次符合条件都发语音；0.3 = 约三成回复使用语音。</small></div>
+                <div class="field-block"><label for="voiceMaxChars">最长朗读文字（字符）</label><input id="voiceMaxChars" type="number" min="20" max="1000" /><small>超出后完整发送文字，不截断回复。</small></div>
+                <div class="field-block"><label for="voiceTimeout">生成超时（秒）</label><input id="voiceTimeout" type="number" min="15" max="180" /><small>Live 按会话时长计费；完成后自动关闭连接。</small></div>
+                <div class="field-block"><label for="voiceSilenceSeconds">收尾静音（秒）</label><input id="voiceSilenceSeconds" type="number" min="1" max="5" step="0.5" /><small>检测音频尾部静音后结束录制；过短可能误截停顿，建议保持 3 秒。</small></div>
+              </section>
+              <section class="panel">
+                <div class="subheading"><h3>Jev 语音判断</h3><p>结合近期对话和本轮回复决定是否发语音、如何表达。需先在「Jev 判定」页启用 Jev，复用已有的 TypeSafe Key。</p></div>
+                <label class="toggle-row"><span><strong>Jev 判断是否适合发语音</strong><small>不适合或判定失败时直接发文字。只对符合长度和语音比例的回复进行判断。</small></span><input id="voiceJevGateEnabled" type="checkbox" /><i></i></label>
+                <div class="field-block"><label for="voiceJevGatePrompt">语音适用规则</label><textarea id="voiceJevGatePrompt" rows="3" maxlength="2000" placeholder="例如：闲聊、安慰适合语音；代码、链接、复杂步骤用文字。"></textarea></div>
+                <label class="toggle-row"><span><strong>Jev 自动调整语音风格</strong><small>从自然、甜美、温柔、轻快、认真中选择语气并调整语速，保持选定音色；不确定时沿用固定风格。</small></span><input id="voiceJevEnabled" type="checkbox" /><i></i></label>
+                <div class="field-block"><label for="voiceJevPrompt">风格判断规则</label><textarea id="voiceJevPrompt" rows="3" maxlength="2000" placeholder="例如：日常甜美自然，安慰时温柔，解释问题时认真。"></textarea><small>两项判断合并为一次 Jev 请求，增加少量等待时间和 Jev 用量。</small></div>
+              </section>
+              <section class="panel">
+                <div class="subheading"><h3>AI 合成语音试听</h3><p>使用当前页面语音参数，无需先保存；只在这里播放，不会发到 QQ。启用 Jev 语音判断后，试听也遵循相同规则。</p></div>
+                <div class="field-block"><label for="voicePreviewText">试听内容</label><textarea id="voicePreviewText" rows="3" maxlength="1000">嗨，我是小可。今天过得怎么样？慢慢说，我在听呢。</textarea></div>
+                <div class="field-block"><label for="voicePreviewContext">对话情境（可选，供 Jev 判断）</label><textarea id="voicePreviewContext" rows="2" maxlength="1000" placeholder="例如：对方说今天很累，想有人陪着聊一会儿。"></textarea></div>
+                <div class="panel-actions"><button id="previewVoice" class="secondary" type="button">生成并试听</button><span id="voicePreviewStatus" class="muted" role="status">先填写语音接口与 Key，再开始试听。</span></div>
+                <p id="voicePreviewError" class="form-error" role="alert"></p>
+                <div id="voicePreviewResult" class="hidden"><audio id="voicePreviewAudio" class="voice-player" controls preload="none"></audio><p class="muted">上次试听的实际转写</p><p id="voicePreviewTranscript" class="voice-transcript"></p></div>
+              </section>
+            </section>
+
+            <section class="page-section" data-page="model">
+              <div class="page-intro"><p class="eyebrow">AI MODEL</p><h2>模型与生成参数</h2><p>配置 OpenAI 兼容接口、模型和高级生成参数。</p></div>
+              <section class="panel two-column">
+                <div class="field-block span-two"><label for="apiBaseUrl">API Base URL</label><input id="apiBaseUrl" type="url" placeholder="https://api.openai.com/v1" required /></div>
+                <div class="field-block span-two"><div class="label-row"><label for="apiKey">API Key</label><span id="apiKeyState" class="count-pill">未配置</span></div><div class="input-action"><input id="apiKey" type="password" autocomplete="new-password" placeholder="留空表示保持当前 Key" /><button id="toggleApiKey" class="secondary" type="button">显示</button></div><label class="inline-check"><input id="clearApiKey" type="checkbox" />清除已保存的 API Key</label><small>Key 只写入本机秘密文件，页面不会回显明文。</small></div>
+                <div class="field-block"><label for="model">模型名称</label><div class="input-action"><input id="model" list="modelOptions" required /><button id="fetchModels" class="secondary" type="button">拉取模型</button></div><datalist id="modelOptions"></datalist><small id="modelFetchHint">填写接口地址和 Key 后可获取模型列表。</small></div>
+                <div class="field-block"><label for="maxTokens">最大输出 Token</label><input id="maxTokens" type="number" min="64" max="8192" /></div>
+                <div class="field-block range-field"><div class="label-row"><label for="temperature">温度</label><output id="temperatureValue">0.7</output></div><input id="temperature" type="range" min="0" max="2" step="0.1" /><div class="range-labels"><span>稳定</span><span>均衡</span><span>自由</span></div></div>
+                <div class="field-block range-field"><div class="label-row"><label for="topP">Top P</label><output id="topPValue">1.0</output></div><input id="topP" type="range" min="0" max="1" step="0.05" /><div class="range-labels"><span>聚焦</span><span>均衡</span><span>发散</span></div></div>
+              </section>
+              <details class="panel advanced-panel"><summary><span><strong>高级 AI 参数</strong><small>惩罚、Seed、推理强度、响应格式和供应商特有参数</small></span><b>展开</b></summary><div class="two-column advanced-content">
+                <div class="field-block"><label for="presencePenalty">Presence Penalty</label><input id="presencePenalty" type="number" min="-2" max="2" step="0.1" /></div>
+                <div class="field-block"><label for="frequencyPenalty">Frequency Penalty</label><input id="frequencyPenalty" type="number" min="-2" max="2" step="0.1" /></div>
+                <div class="field-block"><label for="seed">Seed（可选）</label><input id="seed" type="number" placeholder="留空表示不发送" /></div>
+                <div class="field-block"><label for="requestTimeout">请求超时（秒）</label><input id="requestTimeout" type="number" min="5" max="300" /></div>
+                <div class="field-block"><label for="reasoningEffort">推理强度</label><select id="reasoningEffort"><option value="">不发送</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option></select></div>
+                <div class="field-block"><label for="responseFormat">响应格式</label><select id="responseFormat"><option value="text">普通文本</option><option value="json_object">JSON Object</option></select></div>
+                <div class="field-block span-two"><label for="stopSequences">停止序列</label><textarea id="stopSequences" rows="4" placeholder="每行一个，最多 8 个"></textarea></div>
+                <div class="field-block span-two"><label for="extraBodyJson">供应商自定义参数（JSON）</label><textarea id="extraBodyJson" class="code-input" rows="8" spellcheck="false" placeholder='例如：{&quot;enable_thinking&quot;: false}'></textarea></div>
+              </div></details>
+              <details class="panel advanced-panel"><summary><span><strong>图片与对话上下文</strong><small>让聊天模型直接结合图片回复，也可选择独立识图兼容模式</small></span><b>展开</b></summary><div class="two-column advanced-content">
+                <label class="toggle-row span-two"><span><strong>启用图片理解</strong><small>处理聊天中的图片。直接对话模式会保留近期图片所在的消息，后续可以继续追问。</small></span><input id="visionEnabled" type="checkbox" /><i></i></label>
+                <label class="toggle-row span-two"><span><strong>跳过表情包</strong><small>QQ 表情、商城表情以及被标记为表情的图片不送识图。</small></span><input id="visionSkipStickers" type="checkbox" /><i></i></label>
+                <div class="field-block"><label for="visionMode">图片处理方式</label><select id="visionMode"><option value="direct">直接加入聊天上下文</option><option value="separate">独立识图（兼容模式）</option></select></div>
+                <div class="field-block"><label for="visionMaxImages">单条消息最多图片数</label><input id="visionMaxImages" type="number" min="1" max="8" /></div>
+                <div id="visionDirectFields" class="field-block span-two"><label for="visionContextImages">每轮最多携带近期图片数</label><input id="visionContextImages" type="number" min="1" max="12" /><small>复用上面的聊天模型和接口，主模型及备用模型需支持图片输入。按近期消息优先携带图片，单张最多 6 MB；旧 QQ 图片链接失效时需重发。</small></div>
+                <div id="visionLegacyFields" class="two-column span-two">
+                <div class="field-block span-two"><label for="visionApiBaseUrl">识图接口地址</label><input id="visionApiBaseUrl" type="url" placeholder="留空则复用上面的 API Base URL" /></div>
+                <div class="field-block span-two"><div class="label-row"><label for="visionApiKey">识图 API Key</label><span id="visionApiKeyState" class="count-pill">未配置</span></div><div class="input-action"><input id="visionApiKey" type="password" autocomplete="new-password" placeholder="留空表示保持当前 Key，或复用对话 Key" /><button id="toggleVisionApiKey" class="secondary" type="button">显示</button></div><label class="inline-check"><input id="clearVisionApiKey" type="checkbox" />清除已保存的识图 Key</label><small>Key 只写入本机秘密文件，页面不会回显明文；留空时复用对话模型的 Key。</small></div>
+                <div class="field-block"><label for="visionModel">识图模型名称</label><input id="visionModel" placeholder="如 gpt-4o、qwen-vl-max" /></div>
+                <div class="field-block"><label for="visionTimeout">识图超时（秒）</label><input id="visionTimeout" type="number" min="5" max="300" /></div>
+                <div class="field-block span-two"><label for="visionPrompt">识图提示词</label><textarea id="visionPrompt" rows="4" placeholder="告诉识图模型如何描述图片"></textarea></div>
+                </div>
+              </div></details>
+              <details class="panel advanced-panel"><summary><span><strong>备用模型（主模型失败时自动切换）</strong><small>主对话模型报错/超载时自动改用备用模型重试，可与主模型不同接口/Key</small></span><b>展开</b></summary><div class="two-column advanced-content">
+                <label class="toggle-row span-two"><span><strong>启用备用模型</strong><small>主模型请求失败（如超载 2064、超时、5xx）时，自动改用下面的备用模型重试一次。</small></span><input id="fallbackEnabled" type="checkbox" /><i></i></label>
+                <div class="field-block span-two"><label for="fallbackApiBaseUrl">备用接口地址</label><input id="fallbackApiBaseUrl" type="url" placeholder="留空则复用上面的 API Base URL" /></div>
+                <div class="field-block span-two"><div class="label-row"><label for="fallbackApiKey">备用 API Key</label><span id="fallbackApiKeyState" class="count-pill">未配置</span></div><div class="input-action"><input id="fallbackApiKey" type="password" autocomplete="new-password" placeholder="留空表示保持当前 Key，或复用对话 Key" /><button id="toggleFallbackApiKey" class="secondary" type="button">显示</button></div><label class="inline-check"><input id="clearFallbackApiKey" type="checkbox" />清除已保存的备用 Key</label><small>Key 只写入本机秘密文件，页面不会回显明文；留空时复用对话模型的 Key。</small></div>
+                <div class="field-block span-two"><label for="fallbackModel">备用模型名称</label><input id="fallbackModel" placeholder="如 deepseek-chat、gpt-4o-mini（建议与主模型不同）" /></div>
+              </div></details>
+            </section>
+
+            <section class="page-section" data-page="routine">
+              <div class="page-intro"><p class="eyebrow">CAMPUS LIFE</p><h2>校园日常</h2><p>课程保持规律，每天换一种生活节奏：实验赶工、社团小聚、周末出门，也有待在宿舍放空的日子。</p></div>
+              <section class="panel">
+                <label class="toggle-row"><span><strong>启用大学生日常</strong><small>每轮聊天同步今天的安排；活动到点自动补充并保存细节。不同人问起、重启后再问，都沿用同一份日记。</small></span><input id="routineEnabled" type="checkbox" /><i></i></label>
+                <label class="toggle-row"><span><strong>睡觉时不回复</strong><small>睡眠时段（包括自定义的「睡觉」时段）暂停聊天与主动闲聊，@ 或点名也不回复，醒来自动恢复。管理命令、已设置的提醒等功能仍照常工作。</small></span><input id="routineSleepSilent" type="checkbox" /><i></i></label>
+                <div class="field-block"><label for="routineVariation">日常变化程度</label><select id="routineVariation"><option value="fixed">固定时间 · 仅轮换备选活动</option><option value="natural">自然变化 · 小幅浮动，偶尔穿插小事</option><option value="rich">丰富变化 · 多种节奏，更灵活的时间与小事</option></select><small>自然 / 丰富模式会轮换内置生活主题。丰富模式的自由时间工作日最多浮动 30 分钟、周末 60 分钟；上课起止时间保持固定。保存后更新预览。</small></div>
+                <p class="muted">JEV 会结合当天主题、生活小事和当前活动，选择认真回应、简短接话或聊聊近况，也用于判断语音和照片是否合适。清醒时明确求助正常回应。角色身份沿用「提示词」页。</p>
+              </section>
+              <details class="panel advanced-panel"><summary><span><strong>校园生活照片</strong><small>第一人称随手拍 · 眼前的环境与活动</small></span><b>展开</b></summary><div class="advanced-content two-column">
+                <label class="toggle-row span-two"><span><strong>启用校园生活照片</strong><small>结合当前活动、当地时间和统一校园设定生成配图。只拍眼前的景物、食物或桌面，不自拍。需要启用 JEV。</small></span><input id="routinePhotoEnabled" type="checkbox" /><i></i></label>
+                <div class="field-block"><label for="routinePhotoTrigger">照片触发方式</label><select id="routinePhotoTrigger"><option value="jev">JEV 判断近况话题适合时发送</option><option value="always">宿舍外触发回复时尝试发送</option></select><small>问到今天吃了什么、运动或外出时，JEV 会找出对应日记并配图；回到宿舍也可分享之前的活动。睡觉、上课、认真求助和功能执行时不配图。</small></div>
+                <div class="field-block"><label for="routinePhotoThreshold">JEV 配图阈值</label><input id="routinePhotoThreshold" type="number" min="0" max="1" step="0.05" value="0.75" /><small>如“今早吃什么”，结合上下文给出适合度；达到阈值并匹配到当天事件才附图。默认 0.75，越高越谨慎。评分可在请求日志中查看。</small></div>
+                <div class="field-block"><label for="routinePhotoCooldown">自然配图间隔（分钟）</label><input id="routinePhotoCooldown" type="number" min="1" max="1440" /><small>自然配图受间隔限制；直接问同一件事或要求重发时复用原图，不受此间隔限制。生成失败时保留正常回复。</small></div>
+                <div class="field-block"><label for="routinePhotoModel">照片模型</label><input id="routinePhotoModel" list="routinePhotoModels" /><datalist id="routinePhotoModels"><option value="gpt-image-2.5-flare"></option><option value="gpt-image-2.5-sunburst"></option></datalist><small>默认 GPT-Image-2.5 Flare，适合日常照片生成。所填模型须支持自定义尺寸。</small></div>
+                <div class="field-block"><label for="routinePhotoQuality">照片质量</label><select id="routinePhotoQuality"><option value="low">低</option><option value="medium">中等</option><option value="high">高</option></select></div>
+                <div class="field-block"><label for="routinePhotoRatio">照片画幅</label><select id="routinePhotoRatio"><option value="auto">自动轮换横竖构图</option><option value="4:3">横向 4:3 · 1024×768</option><option value="3:4">纵向 3:4 · 768×1024</option></select></div>
+                <div class="field-block"><label for="routinePhotoBaseUrl">生图接口地址</label><input id="routinePhotoBaseUrl" type="url" placeholder="https://api.openai.com/v1" /></div>
+                <div class="field-block span-two"><div class="label-row"><label for="routinePhotoApiKey">生图 API Key</label><span id="routinePhotoKeyState" class="count-pill"></span></div><input id="routinePhotoApiKey" type="password" autocomplete="new-password" placeholder="留空保持已有 Key；无独立 Key 时复用相同地址的语音或对话 Key" /><label class="inline-check"><input id="clearRoutinePhotoApiKey" type="checkbox" />清除独立生图 Key</label><small>只有接口地址完全相同时才复用现有 Key，保存后不回显。</small></div>
+                <div class="field-block span-two"><label for="routinePhotoCampus">统一校园设定</label><textarea id="routinePhotoCampus" rows="3" maxlength="2000"></textarea><small>这是角色生活的 AI 配图；统一环境描述有助于保持风格，生成的建筑细节仍可能变化。</small></div>
+                <div class="field-block"><label for="routinePhotoPreviewScene">试拍场景</label><select id="routinePhotoPreviewScene"><option value="campus">校园散步</option><option value="dining">食堂吃饭</option><option value="study">图书馆桌面</option><option value="sport">操场运动</option><option value="street">校外书店</option></select></div>
+                <div class="field-block"><label>本地预览</label><button id="previewRoutinePhoto" class="secondary" type="button">生成一张试拍</button><small>使用当前表单与当地时间，仅在本页展示，不向 QQ 发送。会调用生图接口。</small></div>
+                <p id="routinePhotoPreviewStatus" class="muted span-two" role="status"></p><p id="routinePhotoError" class="form-error span-two" role="alert"></p>
+                <img id="routinePhotoPreview" class="hidden span-two routine-photo-preview" alt="校园生活 AI 配图预览" />
+              </div></details>
+              <section class="panel routine-preview" aria-live="polite">
+                <div class="panel-heading"><div><h3>每日安排</h3><p id="routineDate" class="muted">正在读取已保存的作息…</p></div><div class="routine-actions"><button id="routineToday" class="secondary" type="button" aria-pressed="true">今天</button><button id="routineTomorrow" class="ghost" type="button" aria-pressed="false">明天</button><button id="refreshRoutine" class="ghost" type="button">刷新安排</button><button id="forceWake" class="secondary" type="button" disabled>强制起床</button></div></div>
+                <p id="routineWakeState" class="muted routine-wake-state" role="status"></p>
+                <h3 id="routineTheme"></h3><p id="routineFocus" class="muted"></p><p id="routineEvents" class="muted"></p>
+                <div class="routine-current"><span id="routineState" class="count-pill">—</span><h3 id="routineActivity">—</h3><p id="routineRhythm" class="muted"></p></div>
+                <ol id="routineTimeline" class="routine-timeline"></ol>
+                <h3>已记录的生活细节</h3>
+                <p id="routineDiaryState" class="muted"></p>
+                <ol id="routineDiary" class="routine-timeline"></ol>
+                <p class="muted">预览使用已保存设置，每分钟更新当前时段；按配置时区每日自动更新。日程不会自动发到群里，照片只随合适的聊天回复发送。</p>
+                <p id="routineError" class="form-error" role="alert"></p>
+              </section>
+              <details class="panel advanced-panel"><summary><span><strong>编辑工作日与周末作息</strong><small>调整时间、活动类型和每天可选的活动</small></span><b>展开</b></summary><div class="advanced-content two-column">
+                <p class="muted span-two">每行填写「开始时间 | 活动类型 | 活动」。多个活动用 / 分隔，每日选一个；「上课」的选项按星期固定。类型：睡觉、上课、学习、吃饭、休息、娱乐、运动。时间从 00:00 起依次排列，每段延续至下一段开始。</p>
+                <p class="muted span-two">内置模板会按当天主题组合活动、穿插 10–25 分钟的生活小事。自定义某一类模板后，该类日程只使用你填写的活动，不再套用内置主题或小事；时间仍可浮动，选择「固定时间」可严格按表执行。</p>
+                <div class="field-block"><label for="routineWeekday">工作日作息（周一至周五）</label><textarea id="routineWeekday" rows="17" maxlength="8000" spellcheck="false"></textarea></div>
+                <div class="field-block"><label for="routineWeekend">周末作息（周六、周日）</label><textarea id="routineWeekend" rows="17" maxlength="8000" spellcheck="false"></textarea></div>
+              </div></details>
+            </section>
+
+            <div id="configSaveBar" class="save-bar"><div><strong>运行时配置</strong><span id="dirtyText">没有未保存的更改</span></div><p id="saveError" class="form-error" role="alert"></p><button id="saveButton" class="primary" type="submit" disabled>保存并立即生效</button></div>
+          </form>
+
+          <section class="page-section" data-page="members">
+            <div class="page-intro"><p class="eyebrow">MEMBER PROFILES</p><h2>群员画像与好感度</h2><p>根据白名单群中的公开聊天形成可修正的互动画像，不用于心理诊断或敏感属性推断。</p></div>
+            <div class="member-stats">
+              <article class="status-card"><span class="status-dot ok"></span><p>已记录群员</p><strong id="memberStatCount">0</strong></article>
+              <article class="status-card"><span class="status-dot ok"></span><p>累计消息</p><strong id="memberStatMessages">0</strong></article>
+              <article class="status-card"><span class="status-dot ok"></span><p>已生成画像</p><strong id="memberStatAnalyzed">0</strong></article>
+            </div>
+
+            <section class="panel member-settings-panel">
+              <div class="subheading"><h3>记录与自动分析</h3><p>关闭记录后不再写入新群聊；已保存的画像不会自动删除。</p></div>
+              <div class="toggle-list">
+                <label class="toggle-row"><span><strong>启用群员记录</strong><small>只处理群白名单内未被监管插件拦截的文字消息。</small></span><input id="memberAnalysisEnabled" type="checkbox" /><i></i></label>
+                <label class="toggle-row"><span><strong>自动更新画像</strong><small>达到消息门槛后使用当前对话模型在后台分析。</small></span><input id="memberAnalysisAuto" type="checkbox" /><i></i></label>
+                <label class="toggle-row"><span><strong>回复时参考画像</strong><small>让机器人按目标群员的好感度、性格与互动建议微调本轮语气；画像仅作参考，不覆盖安全与权限规则。</small></span><input id="memberProfileInReply" type="checkbox" /><i></i></label>
+              </div>
+              <div class="four-column compact-fields">
+                <div class="field-block"><label for="memberAnalysisMinMessages">首次分析消息数</label><input id="memberAnalysisMinMessages" type="number" min="3" max="500" /></div>
+                <div class="field-block"><label for="memberAnalysisIntervalMessages">更新间隔消息数</label><input id="memberAnalysisIntervalMessages" type="number" min="1" max="500" /></div>
+                <div class="field-block"><label for="memberAnalysisSampleLimit">单次样本上限</label><input id="memberAnalysisSampleLimit" type="number" min="3" max="100" /></div>
+                <div class="field-block"><label for="memberMessageRetention">每人保留消息数</label><input id="memberMessageRetention" type="number" min="20" max="1000" /></div>
+              </div>
+              <div class="panel-actions"><span id="memberSettingsHint" class="muted">设置会保存到本机运行配置。</span><button id="saveMemberSettings" class="secondary" type="button">保存画像设置</button></div>
+            </section>
+
+            <section class="panel member-browser-panel">
+              <div class="member-toolbar">
+                <div class="field-block"><label for="memberGroupFilter">群聊筛选</label><select id="memberGroupFilter"><option value="">全部白名单群</option></select></div>
+                <div class="field-block"><label for="memberSearch">搜索昵称或 QQ</label><input id="memberSearch" type="search" placeholder="输入昵称或 QQ" /></div>
+                <button id="refreshMembers" class="secondary" type="button">刷新画像</button>
+              </div>
+              <div id="memberList" class="member-list"></div>
+              <div id="memberEmpty" class="empty-state">还没有群员记录。机器人收到白名单群消息后会自动建立记录。</div>
+            </section>
+
+            <section id="memberDetail" class="panel member-detail hidden">
+              <div class="member-detail-heading"><div><p class="eyebrow">PROFILE DETAIL</p><h3 id="memberDetailName">群员画像</h3><p id="memberDetailMeta" class="muted"></p></div><button id="closeMemberDetail" class="ghost" type="button">收起</button></div>
+              <div class="favorability-block"><div class="label-row"><label for="memberFavorability">好感度</label><output id="memberFavorabilityValue">50.0</output></div><input id="memberFavorability" type="range" min="0" max="100" step="0.5" /><div class="favorability-track"><span>疏远</span><span>中立</span><span>亲近</span></div><small id="memberFavorabilityReason"></small></div>
+              <div class="profile-grid">
+                <article><span>画像概括</span><p id="memberProfileSummary">尚未分析</p></article>
+                <article><span>沟通风格</span><p id="memberCommunicationStyle">尚未分析</p></article>
+                <article><span>互动建议</span><p id="memberInteractionAdvice">尚未分析</p></article>
+                <article><span>性格倾向</span><div id="memberTraits" class="profile-tags"></div></article>
+                <article><span>兴趣话题</span><div id="memberInterests" class="profile-tags"></div></article>
+              </div>
+              <div class="field-block"><label for="memberBotNickname">Bot 称呼（昵称）</label><input id="memberBotNickname" maxlength="50" placeholder="机器人回复时对 TA 的称呼，如 小王（管理员设定，留空则不使用）" /></div>
+              <div class="field-block"><label for="memberOffenseCount">冒犯标记次数（改为 0 即解除标记）</label><input id="memberOffenseCount" type="number" min="0" /></div>
+              <div class="field-block"><label for="memberAdminNote">管理员备注</label><textarea id="memberAdminNote" rows="4" maxlength="2000" placeholder="仅后台可见"></textarea></div>
+              <details class="recent-message-panel"><summary>查看最近记录的消息</summary><div id="memberRecentMessages" class="recent-message-list"></div></details>
+              <div class="member-detail-actions"><button id="analyzeMember" class="secondary" type="button">立即重新分析</button><button id="saveMember" class="primary" type="button">保存好感度与备注</button><button id="deleteMember" class="ghost danger-text" type="button">删除记录</button></div>
+              <p id="memberActionError" class="form-error" role="alert"></p>
+            </section>
+          </section>
+
+          <section class="page-section" data-page="humanize">
+            <div class="page-intro"><p class="eyebrow">HUMANIZE</p><h2>拟人 · 情绪与主动</h2><p>让机器人有会随时间变化的心情、与群员的亲疏，并（可选）在克制的限频下主动发言。全部默认安全、可逐项开关；心情/画像只微调语气，不影响权限与安全。</p></div>
+
+            <section class="panel">
+              <div class="subheading"><h3>情绪与关系状态</h3><p>心情会随时间回落到平静；好感度长期不互动会淡化。</p></div>
+              <div class="toggle-list">
+                <label class="toggle-row"><span><strong>回复时体现心情</strong><small>把机器人当前心情作为语气底色注入本轮回复。</small></span><input id="moodInReply" type="checkbox" /><i></i></label>
+                <label class="toggle-row"><span><strong>互动即时影响心情</strong><small>被感谢/称赞让心情变好，被辱骂会变差。</small></span><input id="moodEventNudges" type="checkbox" /><i></i></label>
+                <label class="toggle-row"><span><strong>好感度随时间衰减</strong><small>长期不互动的群员好感度缓慢回落到中性 50。</small></span><input id="favorabilityDecayEnabled" type="checkbox" /><i></i></label>
+              </div>
+              <div class="two-column compact-fields">
+                <div class="field-block"><label for="moodHalfLifeHours">心情半衰期（小时）</label><input id="moodHalfLifeHours" type="number" min="0.5" max="168" step="0.5" /></div>
+                <div class="field-block"><label for="favorabilityHalfLifeDays">好感度半衰期（天）</label><input id="favorabilityHalfLifeDays" type="number" min="1" max="365" step="1" /></div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="subheading"><h3>主动性总控</h3><p>所有主动发言（搭话、问候、破冰等）都先过这道闸门。主动通道将在后续阶段逐项开放，这里是统一的安全阀。</p></div>
+              <div class="toggle-list">
+                <label class="toggle-row"><span><strong>允许主动发言（总开关）</strong><small>关闭后机器人只被动回复；打开后仍受下方限频约束。</small></span><input id="proactiveEnabled" type="checkbox" /><i></i></label>
+              </div>
+              <div class="four-column compact-fields">
+                <div class="field-block"><label for="proactiveQuietStart">安静时段起（点）</label><input id="proactiveQuietStart" type="number" min="0" max="23" /></div>
+                <div class="field-block"><label for="proactiveQuietEnd">安静时段止（点）</label><input id="proactiveQuietEnd" type="number" min="0" max="23" /></div>
+                <div class="field-block"><label for="proactiveHourlyCap">每群每小时上限</label><input id="proactiveHourlyCap" type="number" min="0" max="50" /></div>
+                <div class="field-block"><label for="proactiveDailyCap">每群每日上限</label><input id="proactiveDailyCap" type="number" min="0" max="200" /></div>
+              </div>
+              <div class="two-column compact-fields">
+                <div class="field-block"><label for="proactiveCooldownSeconds">单类冷却（秒）</label><input id="proactiveCooldownSeconds" type="number" min="0" max="86400" /></div>
+              </div>
+            </section>
+
+            <div class="panel-actions"><span id="humanizeSettingsHint" class="muted">设置会保存到本机运行配置，立即生效。</span><button id="saveHumanizeSettings" class="secondary" type="button">保存拟人设置</button></div>
+          </section>
+
+          <section class="page-section" data-page="webhook">
+            <div class="page-intro"><p class="eyebrow">WEBHOOK</p><h2>Webhook 转发</h2><p>用一个带令牌的地址接收外部服务（监控告警、CI、表单等）的 POST 请求，转发到指定 QQ 群。默认关闭；令牌为空时一律返回 404。</p></div>
+
+            <section class="panel">
+              <div class="subheading"><h3>接收与转发</h3><p>外部服务向下面的地址发送 POST，机器人把内容发到目标群。请使用足够随机的令牌；该地址需外部可达，建议置于 HTTPS 反代之后。</p></div>
+              <div class="toggle-list">
+                <label class="toggle-row"><span><strong>启用 Webhook</strong><small>关闭后该地址一律返回 404，不接收任何请求。</small></span><input id="webhookEnabled" type="checkbox" /><i></i></label>
+              </div>
+              <div class="two-column compact-fields">
+                <div class="field-block span-two"><div class="label-row"><label for="webhookToken">令牌 Token</label><button id="genWebhookToken" class="secondary" type="button">随机生成</button></div><input id="webhookToken" placeholder="仅字母数字下划线连字符，建议 ≥16 位" /></div>
+                <div class="field-block span-two"><label for="webhookUrl">Webhook 地址（保存后生效）</label><div class="input-action"><input id="webhookUrl" readonly /><button id="copyWebhookUrl" class="secondary" type="button">复制</button></div><small>把这个完整地址填到外部服务的 Webhook 设置里。局域网/外部调用时，请把地址里的 127.0.0.1 换成本机的局域网 IP（需 HOST=0.0.0.0 并放行防火墙 8080 端口）。</small></div>
+                <div class="field-block"><label for="webhookTargetGroup">转发到群号</label><input id="webhookTargetGroup" type="number" min="0" placeholder="目标 QQ 群号" /></div>
+                <div class="field-block"><label for="webhookPrefix">消息前缀（可选）</label><input id="webhookPrefix" maxlength="200" placeholder="如：【监控】" /></div>
+                <div class="field-block span-two"><label for="webhookTemplate">消息模板（可选）</label><textarea id="webhookTemplate" rows="3" maxlength="2000" placeholder="留空则自动提取 text/content/message 字段或原文；可用 {字段}、{a.b}、{_body}、{_json}"></textarea></div>
+              </div>
+              <div class="panel-actions"><span id="webhookSettingsHint" class="muted">设置会保存到本机运行配置，立即生效。</span><button id="testWebhook" class="secondary" type="button">发送测试消息</button><button id="saveWebhookSettings" class="secondary" type="button">保存 Webhook 设置</button></div>
+              <p id="webhookActionError" class="form-error" role="alert"></p>
+            </section>
+          </section>
+
+          <section class="page-section" data-page="joingate">
+            <div class="page-intro"><p class="eyebrow">JOIN GATE</p><h2>入群审核</h2><p>仅对指定群启用：有人申请入群时，按授权名单自动放行或拒绝。名单从授权接口拉取——lifetimeLicenseCount 与 totalLicenseCount 都达到门槛的 QQ 才放行，每 N 小时自动刷新，也可手动刷新。机器人需具备该群的管理员权限；超管始终放行。</p></div>
+
+            <section class="panel">
+              <div class="member-stats">
+                <article class="status-card"><span class="status-dot ok"></span><p>名单人数</p><strong id="joinGateCount">0</strong></article>
+                <article class="status-card"><span id="joinGateDot" class="status-dot"></span><p>名单状态</p><strong id="joinGateLoaded">未加载</strong></article>
+                <article class="status-card"><span class="status-dot ok"></span><p>最后刷新</p><strong id="joinGateUpdated">—</strong></article>
+              </div>
+              <div class="toggle-list">
+                <label class="toggle-row"><span><strong>启用入群审核</strong><small>仅对下面的目标群生效；关闭后不干预任何入群请求。</small></span><input id="joinGateEnabled" type="checkbox" /><i></i></label>
+              </div>
+              <div class="three-column compact-fields">
+                <div class="field-block"><label for="joinGateGroup">目标群号</label><input id="joinGateGroup" type="number" min="0" /></div>
+                <div class="field-block"><label for="joinGateMinLicenses">所需授权数（两项都 ≥ 此值）</label><input id="joinGateMinLicenses" type="number" min="1" max="100" /></div>
+                <div class="field-block"><label for="joinGateRefreshHours">自动刷新间隔（小时）</label><input id="joinGateRefreshHours" type="number" min="1" max="168" /></div>
+              </div>
+              <div class="field-block span-two"><label for="joinGateApiUrl">授权名单接口地址</label><input id="joinGateApiUrl" type="url" placeholder="https://example.com/api/allowlist" /></div>
+              <div class="field-block span-two"><div class="label-row"><label for="joinGateToken">接口令牌（Bearer）</label><span id="joinGateTokenState" class="count-pill">未配置</span></div><div class="input-action"><input id="joinGateToken" type="password" autocomplete="new-password" placeholder="留空表示保持当前令牌" /><button id="toggleJoinGateToken" class="secondary" type="button">显示</button></div><label class="inline-check"><input id="clearJoinGateToken" type="checkbox" />清除已保存令牌</label><small>令牌只写入本机秘密文件、页面不回显；令牌可能会过期，过期后在此更新即可。</small></div>
+              <div class="field-block span-two"><label for="joinGateRejectReason">拒绝理由（申请人可见）</label><input id="joinGateRejectReason" maxlength="200" placeholder="未满足本群入群条件，请联系管理员。" /></div>
+              <div class="panel-actions"><span id="joinGateHint" class="muted">设置会保存到本机运行配置，立即生效。</span><button id="refreshJoinGate" class="secondary" type="button">立即刷新名单</button><button id="saveJoinGate" class="secondary" type="button">保存入群设置</button></div>
+              <p id="joinGateError" class="form-error" role="alert"></p>
+            </section>
+          </section>
+
+          <section class="page-section" data-page="summary">
+            <div class="page-intro"><p class="eyebrow">DAILY DIGEST</p><h2>聊天总结</h2><p>每天晚上定时，用大模型把当天群聊生成一份好看的总结网页，再截成图片发到群里。开启后才会记录当天消息；总结与图片可在下方预览。机器人需在群内且有发言权限。</p></div>
+
+            <section class="panel">
+              <div class="subheading"><h3>生成与发送</h3><p>关闭记录后不再收集新消息；已生成的总结不会自动删除。原始消息仅保留数天用于生成。</p></div>
+              <div class="toggle-list">
+                <label class="toggle-row"><span><strong>启用聊天总结</strong><small>开启后记录白名单群的文字消息，用于每日总结。</small></span><input id="summaryEnabled" type="checkbox" /><i></i></label>
+                <label class="toggle-row"><span><strong>定时自动发送到群</strong><small>到点生成后自动把总结图片发到对应群；关闭则只生成、不发送（可在此手动发）。</small></span><input id="summarySendEnabled" type="checkbox" /><i></i></label>
+              </div>
+              <div class="three-column compact-fields">
+                <div class="field-block"><label for="summaryHour">生成时间（点）</label><input id="summaryHour" type="number" min="0" max="23" /></div>
+                <div class="field-block"><label for="summaryMinMessages">最少消息数</label><input id="summaryMinMessages" type="number" min="1" max="5000" /></div>
+                <div class="field-block"><label for="summaryGroupSelect">预览群</label><select id="summaryGroupSelect"></select></div>
+              </div>
+              <div class="panel-actions"><span id="summaryHint" class="muted">设置会保存到本机运行配置，立即生效。</span><button id="genSummary" class="secondary" type="button">立即生成</button><button id="genSendSummary" class="secondary" type="button">生成并发送</button><button id="saveSummary" class="secondary" type="button">保存总结设置</button></div>
+              <p id="summaryError" class="form-error" role="alert"></p>
+            </section>
+
+            <section class="panel">
+              <div class="member-detail-heading"><div><p class="eyebrow">PREVIEW</p><h3 id="summaryPreviewTitle">最新总结预览</h3><p id="summaryPreviewMeta" class="muted">选择一个群后加载</p></div></div>
+              <div class="summary-preview">
+                <div><div class="subheading"><h3>发送的图片</h3></div><img id="summaryImg" class="summary-img" alt="暂无图片" /><div id="summaryImgEmpty" class="empty-state">暂无图片（生成后显示）。</div></div>
+                <div><div class="subheading"><h3>网页渲染</h3></div><iframe id="summaryFrame" class="summary-frame" title="总结网页渲染"></iframe></div>
+              </div>
+            </section>
+          </section>
+        </div>
+      </main>
+    </div>
+    <dialog id="requestDetail" class="request-drawer" aria-labelledby="requestDetailTitle">
+      <div class="drawer-heading"><div><p class="eyebrow">REQUEST DETAILS</p><h2 id="requestDetailTitle">请求详情</h2></div><button id="closeRequestDetail" class="ghost" type="button" aria-label="关闭请求详情">关闭 ×</button></div>
+      <p id="requestDetailMeta" class="muted"></p><p id="requestDetailError" class="form-error"></p>
+      <div id="requestScoreSummary" class="score-summary"></div>
+      <details open><summary>请求输入</summary><pre id="requestInput"></pre></details>
+      <details open><summary>模型输出 / JEV 评分</summary><pre id="requestOutput"></pre></details>
+      <details><summary>用量与关联信息</summary><pre id="requestUsage"></pre></details>
+    </dialog>
+    <dialog id="intelligenceDetail" class="request-drawer record-drawer" aria-labelledby="intelligenceDetailTitle">
+      <div class="drawer-heading"><div><p class="eyebrow">RECORD DETAILS</p><h2 id="intelligenceDetailTitle">记录详情</h2></div><button id="closeIntelligenceDetail" class="ghost" type="button" aria-label="关闭记录详情">关闭 ×</button></div>
+      <dl id="intelligenceDetailMeta" class="record-detail-meta"></dl>
+      <div id="intelligenceDetailContent" class="record-detail-content"></div>
+    </dialog>
+    <dialog id="routineWakeDialog" class="wake-dialog" aria-labelledby="routineWakeTitle">
+      <form id="routineWakeForm">
+        <div class="drawer-heading"><h2 id="routineWakeTitle">叫小可起床</h2><button id="closeRoutineWake" class="ghost" type="button" aria-label="关闭起床窗口">关闭 ×</button></div>
+        <p class="muted">立即结束本次睡眠，后续按原作息安排。起床时间和理由会写进日记，之后聊天时可以记得。</p>
+        <label for="routineWakeReason">起床理由</label><textarea id="routineWakeReason" rows="4" maxlength="300" required placeholder="例如：临时有事，想让小可起来一起聊聊"></textarea>
+        <p id="routineWakeError" class="form-error" role="alert"></p>
+        <div class="wake-dialog-actions"><button id="cancelRoutineWake" type="button" class="secondary">取消</button><button id="submitRoutineWake" type="submit" class="primary">确认起床并记录</button></div>
+      </form>
+    </dialog>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div><script src="/admin/app.js" defer></script>
+  </body>
+</html>

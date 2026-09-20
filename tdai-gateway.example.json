@@ -1,0 +1,59 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8420,
+    "corsOrigins": []
+  },
+  "data": {
+    "baseDir": "./data/tencentdb-memory"
+  },
+  "memory": {
+    "timezone": "Asia/Taipei",
+    "storeBackend": "${TDAI_STORE_BACKEND}",
+    "capture": {
+      "enabled": true,
+      "l0l1RetentionDays": 0
+    },
+    "extraction": {
+      "enabled": true,
+      "enableDedup": true,
+      "maxMemoriesPerSession": 20
+    },
+    "pipeline": {
+      "everyNConversations": 5,
+      "enableWarmup": true,
+      "l1IdleTimeoutSeconds": 600
+    },
+    "persona": {
+      "triggerEveryN": 50
+    },
+    "recall": {
+      "enabled": true,
+      "strategy": "hybrid",
+      "maxResults": 5,
+      "maxCharsPerMemory": 1200,
+      "maxTotalRecallChars": 4000,
+      "timeoutMs": 5000
+    },
+    "bm25": {
+      "enabled": true,
+      "language": "zh"
+    },
+    "tcvdb": {
+      "url": "${TDAI_TCVDB_URL}",
+      "username": "${TDAI_TCVDB_USERNAME}",
+      "apiKey": "${TDAI_TCVDB_API_KEY}",
+      "database": "${TDAI_TCVDB_DATABASE}",
+      "alias": "${TDAI_TCVDB_ALIAS}"
+    },
+    "embedding": {
+      "provider": "${TDAI_EMBEDDING_PROVIDER}",
+      "baseUrl": "${TDAI_EMBEDDING_BASE_URL}",
+      "apiKey": "${TDAI_EMBEDDING_API_KEY}",
+      "model": "${TDAI_EMBEDDING_MODEL}"
+    },
+    "report": {
+      "enabled": false
+    }
+  }
+}

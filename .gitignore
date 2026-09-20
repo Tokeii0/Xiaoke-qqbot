@@ -1,0 +1,54 @@
+# Local configuration and credentials. Only the reviewed example is public.
+.env
+.env.*
+!.env.example
+/tdai-gateway.json
+/tdai-gateway.yaml
+/tdai-gateway.yml
+bot_secrets.json
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Chat histories, memory, model requests, media, account sessions and backups.
+/data/
+/[Nn]ap[Cc]at*/
+*.zip
+*.7z
+*.tar.gz
+*.db
+*.db-*
+*.sqlite
+*.sqlite3
+*.sqlite-*
+*.sqlite3-*
+*.log
+*.bak
+*.tmp
+
+# Dependencies and build/test outputs.
+.venv/
+.venv-*/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+node_modules/
+/build/
+/dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# Local agent/editor state.
+.claude/
+.codex/
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

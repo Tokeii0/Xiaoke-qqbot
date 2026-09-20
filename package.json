@@ -1,0 +1,15 @@
+{
+  "name": "xiaoke-qqbot-memory-sidecar",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "scripts": {
+    "memory": "node --import tsx ./node_modules/@tencentdb-agent-memory/memory-tencentdb/src/gateway/server.ts"
+  },
+  "dependencies": {
+    "@tencentdb-agent-memory/memory-tencentdb": "^0.3.6",
+    "tsx": "^4.21.0"
+  }
+}

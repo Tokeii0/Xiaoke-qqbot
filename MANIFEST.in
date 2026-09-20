@@ -1,0 +1,8 @@
+include .env.example .gitignore .gitattributes
+include bot.py run.py start.ps1
+include package.json package-lock.json tdai-gateway.example.json
+include README.md LICENSE CONTRIBUTING.md SECURITY.md
+recursive-include docs *.md
+recursive-include tests *.py
+recursive-include xiaoke_bot/web *.html *.js *.css
+global-exclude __pycache__ *.py[cod]
