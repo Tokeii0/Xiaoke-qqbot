@@ -166,7 +166,8 @@ class IntelligenceFlowTests(unittest.IsolatedAsyncioTestCase):
         event.to_me = False
         for score, expected in ((0.74, False), (0.75, True), (0.95, True)):
             verdict = JevVerdict(0.3, 0.1, 0, 0, 1, routine_photo="dining", routine_photo_score=score)
-            with patch.object(self.plugin.jev_client, "configured", return_value=True), \
+            with patch.dict(os.environ, {"TYPESAFE_API_KEY": ""}), \
+                 patch.object(self.plugin.JevClient, "configured", return_value=True), \
                  patch.object(self.plugin.jev_client, "judge", AsyncMock(return_value=verdict)):
                 decision = await self.plugin._decide_response(event, "那早上吃什么呀", settings, 100, "g:100")
             self.assertEqual(decision.should_respond, expected)
