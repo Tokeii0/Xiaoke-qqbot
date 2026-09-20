@@ -1,30 +1,72 @@
-# Xiaoke-qqbot · 小可 QQ 群聊机器人
+<h1 align="center">Xiaoke-qqbot · 小可</h1>
 
-一个可以自部署的 QQ AI 伙伴：接住群聊里的话题，记住已经确认的事情，也知道什么时候该简短回答、什么时候该安静。
+<p align="center">
+  <strong>会聊天，会记得，也懂得适时安静。</strong><br>
+  可自部署的 QQ AI 群聊伙伴，带着记忆、日常和一点小性格。
+</p>
 
-基于 **NapCat + NoneBot2 / OneBot V11**，使用兼容 Chat Completions 的对话模型。通过 **TypeSafe JEV** 做语义决策，通过 **TencentDB Agent Memory** 管理长期记忆，配有可配置模型、行为和运行记录的 Web 后台。
+<p align="center">
+  <a href="https://github.com/Tokeii0/Xiaoke-qqbot/actions/workflows/ci.yml"><img src="https://github.com/Tokeii0/Xiaoke-qqbot/actions/workflows/ci.yml/badge.svg" alt="CI checks"></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/Python-3.10%2B-5B7EC8?style=flat-square&amp;logo=python&amp;logoColor=white" alt="Python 3.10+"></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/Node.js-22.16%2B-6986C2?style=flat-square&amp;logo=nodedotjs&amp;logoColor=white" alt="Node.js 22.16+"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-8194CB?style=flat-square" alt="MIT License"></a>
+</p>
+
+<p align="center">
+  <a href="#快速开始">快速开始</a> ·
+  <a href="docs/CORE_FEATURES.md">功能说明</a> ·
+  <a href="docs/CONFIGURATION.md">配置指南</a> ·
+  <a href="#常用命令">常用命令</a> ·
+  <a href="https://github.com/Tokeii0/Xiaoke-qqbot/issues">反馈问题</a>
+</p>
+
+---
+
+小可会接住群聊里的话题，记住已经确认的事情，也会在一句“你猜”就够的时候收口。你可以在 Web 后台调整她的人设、模型、语音和校园日常，让参与群聊的方式适合自己的群。
+
+基于 **NapCat + NoneBot2 / OneBot V11**，接入兼容 Chat Completions 的对话模型；由 **TypeSafe JEV** 辅助语义判断，**TencentDB Agent Memory** 提供长期记忆。多数扩展功能默认关闭，可按需启用。
 
 ## 核心功能
 
-| 能力 | 群里的体验 |
-| --- | --- |
-| 语义参与与自然回复 | 判断有没有人在叫自己、插话是否合适；区分玩笑、安慰和认真求助；短句说完就收口 |
-| 记忆、知识与纠错 | 保存明确的长期偏好和群内已确认的解决方案，引用来源；理解“刚才是开玩笑，别记住” |
-| 事项与提醒 | 跟踪未解决的问题，在相关话题里自然追问；支持“明早九点提醒我更新证书” |
-| 多模态聊天 | 将聊天图片直接放入模型上下文；也可使用独立识图模型 |
-| QQ 语音 | 将回复生成语音；由 JEV 判断是否适合发语音、采用甜美、温柔或认真等表达风格 |
-| 校园日常 | 每日变化的大学生日程、睡觉静默、记录理由的强制起床、到点补充日常细节 |
-| 日常配图 | 根据已记录事件生成第一人称校园 AI 配图；重复问同一件事时沿用细节和原图 |
-| 搜索与表达节奏 | Tavily 联网检索并附来源；按字数控制分段间隔，轻松闲聊可低频模拟手误 |
-| 管理与诊断 | 群白名单、权限、成员互动画像、聊天总结、可选入群审核与 Webhook；统一模型请求和 JEV 记录 |
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <strong>💬 自然接话</strong><br>
+      判断该不该参与，分清玩笑、安慰与认真求助。该简短时收口，分段回复按字数留出间隔，轻松闲聊可低频模拟手误。
+    </td>
+    <td width="50%" valign="top">
+      <strong>🧠 记忆与群知识</strong><br>
+      保存明确的偏好和已确认的解决方案，引用来源；听得懂“刚才是在开玩笑，别记住”，也能更新过时的信息。
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <strong>🎧 图片与语音</strong><br>
+      聊天图片直接进入模型上下文，也可独立识图。JEV 判断是否适合发 QQ 语音，并选择甜美、温柔或认真等表达风格。
+    </td>
+    <td valign="top">
+      <strong>🌤️ 校园日常</strong><br>
+      每日变化的安排、睡觉静默、记录理由的强制起床。到点补充生活细节，按事件生成第一人称 AI 配图，同一件事复用原图。
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <strong>🔎 搜索、事项与提醒</strong><br>
+      通过 Tavily 检索新信息并附来源，跟进尚未解决的问题；用“明早九点提醒我更新证书”创建一次性提醒。
+    </td>
+    <td valign="top">
+      <strong>🛠️ Web 管理后台</strong><br>
+      集中配置模型、行为、群白名单与权限。分类表格查看记忆和事项，统一查看模型请求与 JEV 判断；默认浅色，支持深色。
+    </td>
+  </tr>
+</table>
 
-后台默认浅色，支持深色主题；记忆、事项、提醒、知识和偏好采用分类标签页与表格查看。大多数扩展功能默认关闭，可按需启用。
+还支持成员互动画像、聊天总结、可选入群审核与 Webhook。[查看完整功能与实现 →](docs/CORE_FEATURES.md)
 
-这些能力模拟的是 AI 角色的生活与表达。校园图片为 AI 生成，机器人被问到身份或图片来源时应如实说明。
+> 小可是 AI 角色，校园生活与照片均为模拟或生成。被问到身份和图片来源时，应如实说明。
 
-[核心功能与实现](docs/CORE_FEATURES.md) · [配置指南](docs/CONFIGURATION.md) · [开源提交检查](docs/OPEN_SOURCE.md)
-
-## 架构
+<details>
+<summary><strong>项目如何运行</strong> · 查看架构</summary>
 
 ```mermaid
 flowchart LR
@@ -39,6 +81,8 @@ flowchart LR
 ```
 
 `run.py` 负责加载环境、按需启动官方记忆网关并运行机器人。前端为原生 HTML / CSS / JavaScript，不需要单独构建；Node.js 用于记忆服务。
+
+</details>
 
 ## 快速开始
 
@@ -61,7 +105,8 @@ git clone https://github.com/Tokeii0/Xiaoke-qqbot.git
 cd Xiaoke-qqbot
 ```
 
-Windows PowerShell：
+<details open>
+<summary><strong>Windows · PowerShell</strong></summary>
 
 ```powershell
 py -3.12 -m venv .venv
@@ -72,7 +117,10 @@ Copy-Item .env.example .env
 Copy-Item tdai-gateway.example.json tdai-gateway.json
 ```
 
-Linux / macOS：
+</details>
+
+<details>
+<summary><strong>Linux / macOS</strong></summary>
 
 ```bash
 python3 -m venv .venv
@@ -83,6 +131,8 @@ npm ci
 cp .env.example .env
 cp tdai-gateway.example.json tdai-gateway.json
 ```
+
+</details>
 
 复制配置仅用于首次安装；更新已有实例时保留原配置和 `data/`。本地验证环境为 Windows、Python 3.12 和 Node.js 24；其他环境可参考仓库中的 CI 检查流程。
 
@@ -148,6 +198,16 @@ python bot.py
 
 启用相应 JEV 子功能后，还可以自然地说：“查看我的提醒”“取消提醒 12”“整理今天未解决的问题”“以后代码问题用文字回答”。提醒目前仅支持明确时间的一次性任务。
 
+## 文档导航
+
+| 想了解什么 | 从这里开始 |
+| --- | --- |
+| JEV 怎么判断，记忆、日常和语音如何协作 | [核心功能与实现](docs/CORE_FEATURES.md) |
+| 模型接入、后台配置、功能开关与数据范围 | [配置指南](docs/CONFIGURATION.md) |
+| 哪些文件可以公开，依赖采用什么许可证 | [开源提交检查](docs/OPEN_SOURCE.md) |
+| 参与开发、提交改进与报告问题 | [贡献指南](CONTRIBUTING.md) |
+| 密钥、聊天隐私与漏洞报告 | [安全说明](SECURITY.md) |
+
 ## 使用边界
 
 - JEV、搜索、语音和生图可能产生独立费用；阈值、概率、冷却和主动消息预算共同影响实际触发。一条回复可能包含多次模型请求。
@@ -165,3 +225,9 @@ node --check xiaoke_bot/web/app.js
 测试主要使用模拟接口和临时数据，不需要连接真实 QQ 或付费模型。贡献方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 项目代码采用 [MIT License](LICENSE)。依赖和外部服务遵循各自许可证与使用条款；本项目的 MIT 不覆盖 QQ / NapCat 的分发包、模型服务或用户聊天数据。依赖说明见[开源提交检查](docs/OPEN_SOURCE.md#依赖与授权)。
+
+---
+
+<p align="center">
+  <sub>小可在这里，等下一句“在吗”。</sub>
+</p>
